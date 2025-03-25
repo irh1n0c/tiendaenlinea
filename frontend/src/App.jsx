@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import Login from "./login";
 import Dashboard from "./itemstienda";
 import RegistroUsuario from "./registeruser";
+import WebProductos from "./webproductos"; // Importa el nuevo componente
 
 // Componente para proteger rutas privadas
 function PrivateRoute({ element }) {
@@ -21,6 +22,7 @@ function App() {
                 <Route path="/" element={<Login />} />
                 <Route path="/itemstienda" element={<PrivateRoute element={<Dashboard />} />} />
                 <Route path="/register" element={<RegistroUsuario />} />
+                <Route path="/productos" element={<WebProductos />} /> {/* Ruta pública sin PrivateRoute */}
             </Routes>
         </Router>
     );

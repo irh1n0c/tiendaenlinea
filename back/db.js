@@ -6,8 +6,8 @@ const router = express.Router();
 // Conexión a la base de datos
 const db = mysql.createConnection({
     host: "localhost",
-    user: "root", // Cambia esto si usas otro usuario
-    password: "admin", // Si tienes contraseña, agrégala aquí
+    user: "root", 
+    password: "admin", 
     database: "tienda"
 });
 
