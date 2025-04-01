@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import SliderAdmin from "./SliderAdmin";
 
 function Dashboard() {
     const navigate = useNavigate();
@@ -10,9 +11,25 @@ function Dashboard() {
         imagen: "",
         stock: ""
     });
+    const [searchTerm, setSearchTerm] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+
+    useEffect(() => {
+        // Limpiar resultados de búsqueda cuando se cancela la búsqueda
+        if (!isSearching) {
+            setSearchResults([]);
+        }
+    }, [isSearching]);
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
     };
 
     // Función handleFileChange modificada para incluir la vista previa
@@ -34,9 +51,99 @@ function Dashboard() {
         }
     };
 
+    // Función para buscar productos
+    const searchProducts = async () => {
+        if (!searchTerm.trim()) return;
+        
+        try {
+            const response = await fetch(`http://localhost:3001/api/productos?search=${encodeURIComponent(searchTerm)}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                const productos = Array.isArray(data) ? data : data.productos || [];
+                setSearchResults(productos);
+                setIsSearching(true);
+            } else {
+                alert("Error al buscar productos");
+            }
+        } catch (error) {
+            console.error("Error en la búsqueda", error);
+        }
+    };
+
+    // Función para seleccionar un producto para editar
+    const selectProductToEdit = (producto) => {
+        setForm({
+            nombre: producto.nombre,
+            descripcion: producto.descripcion,
+            stock: producto.stock,
+            imagen: producto.imagen
+        });
+        setEditingId(producto.id);
+        setIsEditing(true);
+        
+        // Si hay una imagen, mostrar vista previa
+        if (producto.imagen) {
+            setImagePreview(`http://localhost:3001/${producto.imagen}`);
+        } else {
+            setImagePreview(null);
+        }
+        
+        // Cerrar el panel de búsqueda
+        setIsSearching(false);
+    };
+
+    // Función para actualizar un producto
+    const updateProduct = async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        formData.append('nombre', form.nombre);
+        formData.append('descripcion', form.descripcion);
+        formData.append('stock', form.stock);
+        
+        if (form.imagenFile) {
+            formData.append('imagen', form.imagenFile);
+        }
+        
+        try {
+            const response = await fetch(`http://localhost:3001/api/productos/${editingId}`, {
+                method: "PUT",
+                body: formData
+            });
+            
+            if (response.ok) {
+                alert("Producto actualizado correctamente");
+                resetForm();
+            } else {
+                alert("Error al actualizar producto");
+            }
+        } catch (error) {
+            console.error("Error en la solicitud", error);
+        }
+    };
+
+    // Función para cancelar la edición
+    const cancelEdit = () => {
+        resetForm();
+    };
+
+    // Función para resetear el formulario
+    const resetForm = () => {
+        setForm({ nombre: "", descripcion: "", imagen: "", stock: "" });
+        setImagePreview(null);
+        setIsEditing(false);
+        setEditingId(null);
+    };
+
     // Función handleSubmit actualizada para usar FormData
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (isEditing) {
+            await updateProduct(e);
+            return;
+        }
         
         // Crear un objeto FormData para enviar el archivo
         const formData = new FormData();
@@ -52,14 +159,12 @@ function Dashboard() {
         try {
             const response = await fetch("http://localhost:3001/api/productos", {
                 method: "POST",
-                // No incluimos headers porque FormData establece automáticamente el content-type
                 body: formData
             });
             
             if (response.ok) {
                 alert("Producto agregado correctamente");
-                setForm({ nombre: "", descripcion: "", imagen: "", stock: "" });
-                setImagePreview(null); // Limpiar la vista previa
+                resetForm();
             } else {
                 alert("Error al agregar producto");
             }
@@ -75,8 +180,71 @@ function Dashboard() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-            <h1 className="text-3xl font-bold mb-4">Agregar Producto</h1>
+        <div className="flex flex-col items-center justify-start min-h-screen bg-gray-100 p-4">
+            {/* Barra de búsqueda */}
+            <div className="w-full max-w-4xl mb-8 bg-white p-4 rounded-lg shadow-md">
+                <SliderAdmin />
+            </div>
+
+            <div className="w-full max-w-4xl mb-8 bg-white p-4 rounded-lg shadow-md">
+                <div className="flex flex-col md:flex-row gap-4">
+                    <input
+                        type="text"
+                        placeholder="Buscar producto por nombre"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        className="flex-grow border p-2 rounded"
+                    />
+                    <button
+                        onClick={searchProducts}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        Buscar
+                    </button>
+                </div>
+                
+                {/* Resultados de búsqueda */}
+                {isSearching && searchResults.length > 0 && (
+                    <div className="mt-4 border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-4 py-2 text-left">Nombre</th>
+                                    <th className="px-4 py-2 text-left">Stock</th>
+                                    <th className="px-4 py-2 text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {searchResults.map(producto => (
+                                    <tr key={producto.id} className="border-t">
+                                        <td className="px-4 py-2">{producto.nombre}</td>
+                                        <td className="px-4 py-2">{producto.stock}</td>
+                                        <td className="px-4 py-2 text-center">
+                                            <button
+                                                onClick={() => selectProductToEdit(producto)}
+                                                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                                            >
+                                                Editar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+                
+                {isSearching && searchResults.length === 0 && (
+                    <div className="mt-4 text-center text-gray-500 p-4 border rounded bg-gray-50">
+                        No se encontraron productos con ese nombre
+                    </div>
+                )}
+            </div>
+
+            <h1 className="text-3xl font-bold mb-4">
+                {isEditing ? "Editar Producto" : "Agregar Producto"}
+            </h1>
+            
             <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md w-96">
                 <label className="block mb-2">
                     Nombre:
@@ -139,13 +307,27 @@ function Dashboard() {
                         min="0"
                     />
                 </label>
-                <button
-                    type="submit"
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
-                >
-                    Agregar Producto
-                </button>
+                
+                <div className="flex gap-2">
+                    <button
+                        type="submit"
+                        className={`text-white px-4 py-2 rounded w-full ${isEditing ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'}`}
+                    >
+                        {isEditing ? "Actualizar Producto" : "Agregar Producto"}
+                    </button>
+                    
+                    {isEditing && (
+                        <button
+                            type="button"
+                            onClick={cancelEdit}
+                            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-full"
+                        >
+                            Cancelar
+                        </button>
+                    )}
+                </div>
             </form>
+            
             <button
                 onClick={handleLogout}
                 className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"

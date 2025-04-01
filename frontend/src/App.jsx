@@ -19,10 +19,11 @@ function App() {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<Login />} />
+                <Route path="/" element={<WebProductos />} />
+                <Route path="/login" element={<Login />} />
                 <Route path="/itemstienda" element={<PrivateRoute element={<Dashboard />} />} />
                 <Route path="/register" element={<RegistroUsuario />} />
-                <Route path="/productos" element={<WebProductos />} /> {/* Ruta pública sin PrivateRoute */}
+                {/* <Route path="/productos" element={<WebProductos />} /> */}
             </Routes>
         </Router>
     );

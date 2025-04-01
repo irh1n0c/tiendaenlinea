@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "titulo": "tiempos",
+    "imagen": "uploads/slider/slide1.png",
+    "link": ""
+  },
+  {
+    "id": 2,
+    "titulo": "RIPLEY JOSE",
+    "imagen": "uploads/slider/slide2.jpg",
+    "link": ""
+  },
+  {
+    "id": 3,
+    "titulo": "tecno",
+    "imagen": "uploads/slider/slide3.jpg",
+    "link": ""
+  }
+]

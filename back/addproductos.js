@@ -9,7 +9,7 @@ const router = express.Router();
 const db = mysql.createConnection({
     host: "localhost",
     user: "root", 
-    password: "admin", 
+    password: "awds123", 
     database: "tienda" 
 });
 
@@ -47,11 +47,20 @@ const upload = multer({
     }
 });
 
-// Nueva ruta GET para obtener todos los productos
+// Ruta GET para obtener todos los productos o buscar por nombre
 router.get("/productos", (req, res) => {
-    const sql = "SELECT * FROM productos";
+    // Verificar si hay un parámetro de búsqueda
+    const searchTerm = req.query.search;
+    let sql = "SELECT * FROM productos";
+    let params = [];
     
-    db.query(sql, (err, results) => {
+    // Si hay término de búsqueda, modificar la consulta para filtrar por nombre
+    if (searchTerm) {
+        sql = "SELECT * FROM productos WHERE nombre LIKE ?";
+        params = [`%${searchTerm}%`]; // Búsqueda parcial (contiene)
+    }
+    
+    db.query(sql, params, (err, results) => {
         if (err) {
             console.error("Error al obtener productos:", err);
             return res.status(500).json({ 
@@ -67,6 +76,29 @@ router.get("/productos", (req, res) => {
         }));
         
         res.status(200).json(productosConImagenes);
+    });
+});
+
+// Ruta para obtener un producto específico por ID
+router.get("/productos/:id", (req, res) => {
+    const productId = req.params.id;
+    const sql = "SELECT * FROM productos WHERE id = ?";
+    
+    db.query(sql, [productId], (err, results) => {
+        if (err) {
+            console.error("Error al obtener producto:", err);
+            return res.status(500).json({ error: "Error al recuperar producto" });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ error: "Producto no encontrado" });
+        }
+        
+        const producto = results[0];
+        res.status(200).json({
+            ...producto,
+            imagen: producto.imagen ? `imagenes/${path.basename(producto.imagen)}` : null
+        });
     });
 });
 
@@ -95,6 +127,82 @@ router.post("/productos", upload.single('imagen'), (req, res) => {
                 }
             });
         }
+    });
+});
+
+// Ruta para actualizar un producto existente
+router.put("/productos/:id", upload.single('imagen'), (req, res) => {
+    const productId = req.params.id;
+    const { nombre, descripcion, stock } = req.body;
+    
+    // Primero verificar si el producto existe
+    db.query("SELECT * FROM productos WHERE id = ?", [productId], (err, results) => {
+        if (err) {
+            console.error("Error al buscar producto:", err);
+            return res.status(500).json({ error: "Error al buscar producto" });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ error: "Producto no encontrado" });
+        }
+        
+        const productoExistente = results[0];
+        
+        // Determinar la ruta de la imagen a guardar
+        let rutaImagen = productoExistente.imagen; // Mantener la imagen existente por defecto
+        
+        if (req.file) {
+            // Si se subió una nueva imagen, actualizar la ruta
+            rutaImagen = `imagenes/${req.file.filename}`;
+        }
+        
+        // Actualizar el producto
+        const sql = "UPDATE productos SET nombre = ?, descripcion = ?, imagen = ?, stock = ? WHERE id = ?";
+        
+        db.query(sql, [nombre, descripcion, rutaImagen, stock || 0, productId], (err, result) => {
+            if (err) {
+                console.error("Error al actualizar producto:", err);
+                return res.status(500).json({ error: "Error al actualizar producto" });
+            }
+            
+            res.status(200).json({
+                message: "Producto actualizado correctamente",
+                producto: {
+                    id: productId,
+                    nombre,
+                    descripcion,
+                    imagen: rutaImagen,
+                    stock
+                }
+            });
+        });
+    });
+});
+
+// Ruta para eliminar un producto
+router.delete("/productos/:id", (req, res) => {
+    const productId = req.params.id;
+    
+    // Primero obtenemos el producto para saber si tiene imagen
+    db.query("SELECT * FROM productos WHERE id = ?", [productId], (err, results) => {
+        if (err) {
+            console.error("Error al buscar producto:", err);
+            return res.status(500).json({ error: "Error al buscar producto" });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ error: "Producto no encontrado" });
+        }
+        
+        // Eliminar el producto
+        db.query("DELETE FROM productos WHERE id = ?", [productId], (err, result) => {
+            if (err) {
+                console.error("Error al eliminar producto:", err);
+                return res.status(500).json({ error: "Error al eliminar producto" });
+            }
+            
+            res.status(200).json({ message: "Producto eliminado correctamente" });
+        });
     });
 });
 
