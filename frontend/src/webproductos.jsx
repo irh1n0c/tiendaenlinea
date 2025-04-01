@@ -12,7 +12,8 @@ const WebProductos = () => {
         const fetchProductos = async () => {
             try {
                 // Modificado para usar puerto 3001
-                const response = await axios.get('http://localhost:3001/api/productos');
+                // const response = await axios.get('http://localhost:3001/api/productos');
+                const response = await axios.get('https://uniform-maker-dimensions-reduced.trycloudflare.com');
                 
                 console.log('Respuesta del backend:', response.data);
 
