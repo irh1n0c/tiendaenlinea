@@ -11,8 +11,7 @@ const ProductSlider = () => {
         const fetchSlides = async () => {
             try {
                 const API_URL = import.meta.env.VITE_API_URL;
-                const response = await axios.get(`${API_URL}/api/slides`);
-                // const response = await axios.get('http://localhost:3001/api/slides');
+                const response = await axios.get('http://localhost:3001/api/slides');
                 const slidesData = Array.isArray(response.data) ? response.data : response.data.slides || [];
                 
                 setSlides(slidesData);

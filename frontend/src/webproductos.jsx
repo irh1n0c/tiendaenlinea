@@ -11,12 +11,7 @@ const WebProductos = () => {
     useEffect(() => {
         const fetchProductos = async () => {
             try {
-                // Modificado para usar puerto 3001
-                const API_URL = import.meta.env.VITE_API_URL;
-                const response = await axios.get(`${API_URL}/api/productos`);
-                // const response = await axios.get('http://localhost:3001/api/productos');
-                // const response = await axios.get('https://uniform-maker-dimensions-reduced.trycloudflare.com');
-                
+                const response = await axios.get('http://localhost:3001/api/productos');
                 console.log('Respuesta del backend:', response.data);
 
                 const productosData = Array.isArray(response.data) 
@@ -36,20 +31,12 @@ const WebProductos = () => {
     }, []);
 
     const enviarWhatsApp = (producto) => {
-        // Capturar información del producto
-        const { nombre, descripcion, imagen } = producto;
-        
-        // Crear la URL de la imagen completa
-        //const urlImagen = `http://192.168.1.16:5173/${imagen}`;
-        
-        // Crear el mensaje para WhatsApp
+        const { nombre, descripcion } = producto;
         const mensaje = `¡Hola! Me interesa el producto: *${nombre}* - Precio: *${descripcion}`;
         
         // Codificar el mensaje para URL
         const mensajeCodificado = encodeURIComponent(mensaje);
-        
-        // Número de WhatsApp al que se enviará (reemplazar con el número correcto)
-        const numeroWhatsApp = "+51903024070"; // Reemplazar con el número real
+        const numeroWhatsApp = "+51903024070"; 
         
         // Crear la URL de WhatsApp con el mensaje
         const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
