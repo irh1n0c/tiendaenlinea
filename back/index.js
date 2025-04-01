@@ -25,6 +25,10 @@ app.use("/api", addProductosRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Iniciar el servidor (solo en index.js)
-app.listen(PORT, () => {
-    console.log(`Servidor backend corriendo en el puerto ${PORT}`);
-});
+// app.listen(PORT, () => {
+//     console.log(`Servidor backend corriendo en el puerto ${PORT}`);
+// });
+app.listen(3001, "0.0.0.0", () => {
+    console.log("Servidor accesible en la red local");
+  });
+  
