@@ -2,25 +2,9 @@ const express = require("express");
 const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
-require('dotenv').config();
+const db = require("./database"); 
 const router = express.Router();
 
-// Configuración de la conexión a MySQL
-const db = mysql.createConnection({
-    host: process.env.MYSQLHOST,
-    user: process.env.MYSQLUSER,
-    password: process.env.MYSQLPASSWORD,
-    database: process.env.MYSQLDATABASE,
-    port: process.env.MYSQLPORT
-});
-
-db.connect((err) => {
-    if (err) {
-        console.error("Error al conectar a la base de datos:", err);
-    } else {
-        console.log("Conectado a MySQL (addproductos.js)");
-    }
-});
 
 // Configurar multer para guardar los archivos
 const storage = multer.diskStorage({

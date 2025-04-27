@@ -13,13 +13,12 @@ if (!fs.existsSync(SLIDER_DIR)) {
     fs.mkdirSync(SLIDER_DIR, { recursive: true });
 }
 
-// Configuración para guardar las imágenes con nombres fijos (slide1.jpg, slide2.jpg, slide3.jpg)
+// Configuración para guardar las imágenes con nombres fijos
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
         cb(null, SLIDER_DIR);
     },
     filename: function(req, file, cb) {
-        // Usar el número de slide como nombre de archivo (1, 2 o 3)
         const slideNumber = req.params.position;
         const extension = path.extname(file.originalname).toLowerCase();
         cb(null, `slide${slideNumber}${extension}`);
@@ -28,9 +27,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // Limitar a 10MB
+    limits: { fileSize: 10 * 1024 * 1024 },
     fileFilter: function(req, file, cb) {
-        // Aceptar solo ciertos tipos de imagen
         if (file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
@@ -95,7 +93,7 @@ router.get("/slides", (req, res) => {
         const fullPath = path.join(SLIDER_DIR, imagePath);
         
         if (!fs.existsSync(fullPath)) {
-            // Si no existe, usar una imagen por defecto o placeholder
+            // Si no existe, usar una imagen placeholder
             slide.imagen = 'uploads/slider/placeholder.jpg';
         }
     });
@@ -103,70 +101,18 @@ router.get("/slides", (req, res) => {
     res.status(200).json(slides);
 });
 
-// Ruta para actualizar un slide específico
-router.put("/slides/:position", upload.single('imagen'), (req, res) => {
-    const position = parseInt(req.params.position);
-    const { titulo, link } = req.body;
-    
-    // Validar que la posición sea 1, 2 o 3
-    if (position < 1 || position > 3) {
-        return res.status(400).json({ error: "Posición de slide inválida. Debe ser 1, 2 o 3." });
-    }
-    
-    // Obtener la información actual
-    const slides = getSlidesInfo();
-    
-    // Actualizar la información del slide
-    const slideIndex = position - 1;
-    
-    // Determinar la ruta de la imagen
-    let imagePath = slides[slideIndex].imagen;
-    
-    if (req.file) {
-        // Si se subió una nueva imagen
-        const extension = path.extname(req.file.originalname).toLowerCase();
-        imagePath = `uploads/slider/slide${position}${extension}`;
-    }
-    
-    // Actualizar la información
-    slides[slideIndex] = {
-        id: position,
-        titulo: titulo || slides[slideIndex].titulo,
-        imagen: imagePath,
-        link: link || slides[slideIndex].link
-    };
-    
-    // Guardar los cambios
-    saveSlidesInfo(slides);
-    
-    res.status(200).json({
-        message: "Slide actualizado correctamente",
-        slide: slides[slideIndex]
-    });
-});
+// Rutas existentes...
 
-// Ruta para obtener un slide específico
-router.get("/slides/:position", (req, res) => {
-    const position = parseInt(req.params.position);
-    
-    // Validar que la posición sea 1, 2 o 3
-    if (position < 1 || position > 3) {
-        return res.status(400).json({ error: "Posición de slide inválida. Debe ser 1, 2 o 3." });
-    }
-    
-    const slides = getSlidesInfo();
-    const slide = slides[position - 1];
-    
-    res.status(200).json(slide);
-});
-
-// Si no existe una imagen placeholder, crear una por defecto (opcional)
+// Crear una imagen placeholder por defecto
 const placeholderPath = path.join(SLIDER_DIR, 'placeholder.jpg');
 if (!fs.existsSync(placeholderPath)) {
     try {
-        // Copiar una imagen placeholder desde algún lugar o crear una básica
-        // Este paso es opcional y depende de tu implementación
-        console.log("No existe imagen placeholder para slides");
+        // Crear una imagen placeholder básica
+        const placeholderContent = Buffer.from(
+            'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'
+        );
+        fs.writeFileSync(placeholderPath, placeholderContent);
+        console.log("Imagen placeholder para slides creada correctamente");
     } catch (error) {
         console.error("Error al crear imagen placeholder:", error);
     }

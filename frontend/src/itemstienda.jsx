@@ -56,7 +56,7 @@ function Dashboard() {
         if (!searchTerm.trim()) return;
         
         try {
-            const response = await fetch(`tiendaenlinea-production.up.railway.app/api/productos?search=${encodeURIComponent(searchTerm)}`);
+            const response = await fetch(`http://localhost:3001/api/productos?search=${encodeURIComponent(searchTerm)}`);
             
             if (response.ok) {
                 const data = await response.json();
