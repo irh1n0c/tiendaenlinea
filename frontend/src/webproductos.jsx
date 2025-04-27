@@ -11,7 +11,7 @@ const WebProductos = () => {
     useEffect(() => {
         const fetchProductos = async () => {
             try {
-                const response = await axios.get('http://localhost:3001/api/productos');
+                const response = await axios.get('https://tiendaenlinea-production.up.railway.app/api/productos');
                 console.log('Respuesta del backend:', response.data);
 
                 const productosData = Array.isArray(response.data) 
