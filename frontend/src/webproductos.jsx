@@ -6,7 +6,9 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 const response = await axios.get(`${API_URL}/api/productos`);
 
 const WebProductos = () => {
-    const [productos, setProductos] = reactExports.useState([]);
+    const [productos, setProductos] = useState([]);
+    const [loading, setLoading] = useState(true); // Estado para manejar la carga
+    const [error, setError] = useState(null); // Estado para manejar los errores
 
     useEffect(() => {
         const fetchProductos = async () => {
@@ -14,8 +16,10 @@ const WebProductos = () => {
                 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
                 const response = await axios.get(`${API_URL}/api/productos`);
                 setProductos(response.data);
-            } catch (error) {
-                console.error('Error al cargar productos:', error);
+                setLoading(false); // Cambio a false cuando los productos se cargan
+            } catch (err) {
+                setError('Error al cargar productos');
+                setLoading(false); // Asegurarse de que el loading se desactive en caso de error
             }
         };
 
