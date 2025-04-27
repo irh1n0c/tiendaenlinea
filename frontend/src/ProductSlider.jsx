@@ -10,8 +10,8 @@ const ProductSlider = () => {
     useEffect(() => {
         const fetchSlides = async () => {
             try {
-                const API_URL = import.meta.env.VITE_API_URL;
-                const response = await axios.get('http://localhost:3001/api/slides');
+                const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001'; // Usamos la URL desde el archivo de entorno
+                const response = await axios.get(`${API_URL}/api/slides`);
                 const slidesData = Array.isArray(response.data) ? response.data : response.data.slides || [];
                 
                 setSlides(slidesData);
@@ -21,7 +21,7 @@ const ProductSlider = () => {
                 setError(err.response?.data?.message || 'Error al cargar las imágenes del slider');
                 setLoading(false);
                 
-                setSlides([
+                setSlides([ // Esto es para la simulación si hay error
                     { id: 1, imagen: 'slider/slide1.jpg', titulo: 'Promoción 1' },
                     { id: 2, imagen: 'slider/slide2.jpg', titulo: 'Nuevos Productos' },
                     { id: 3, imagen: 'slider/slide3.jpg', titulo: 'Ofertas Especiales' }
@@ -77,7 +77,6 @@ const ProductSlider = () => {
     return (
         <div className="relative mb-8 overflow-hidden rounded-lg shadow-lg">
             <div className="relative h-64 md:h-80 lg:h-96 xl:h-[500px] w-full overflow-hidden">
-
                 {slides.map((slide, index) => (
                     <div
                         key={slide.id}
@@ -86,7 +85,7 @@ const ProductSlider = () => {
                         }`}
                     >
                         <img 
-                            src={`http://localhost:3001/${slide.imagen}`} 
+                            src={`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/${slide.imagen}`} 
                             alt={slide.titulo || `Slide ${index + 1}`} 
                             className="w-full h-full object-cover" 
                         />
