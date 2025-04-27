@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductSlider from './ProductSlider'; // Importa el nuevo componente
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const response = await axios.get(`${API_URL}/api/productos`);
 
 const WebProductos = () => {
     const [productos, setProductos] = useState([]);
@@ -80,11 +82,12 @@ const WebProductos = () => {
         >
             <div className="w-full h-24 sm:h-36 md:h-48 lg:h-64 overflow-hidden">
                 {producto.imagen ? (
-                    <img 
-                        src={`http://localhost:3001/${producto.imagen}`} 
-                        alt={producto.nombre} 
-                        className="w-full h-full object-cover"
-                    />
+                    <img src={`${API_URL}/${producto.imagen}`} alt={producto.nombre} className="w-full h-full object-cover" />
+                    // <img 
+                    //     src={`http://localhost:3001/${producto.imagen}`} 
+                    //     alt={producto.nombre} 
+                    //     className="w-full h-full object-cover"
+                    // />
                 ) : (
                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                         <span className="text-gray-400 text-xs">No imagen</span>
