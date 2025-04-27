@@ -6,26 +6,16 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 const response = await axios.get(`${API_URL}/api/productos`);
 
 const WebProductos = () => {
-    const [productos, setProductos] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [productos, setProductos] = reactExports.useState([]);
 
     useEffect(() => {
         const fetchProductos = async () => {
             try {
+                const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
                 const response = await axios.get(`${API_URL}/api/productos`);
-                console.log('Respuesta del backend:', response.data);
-
-                const productosData = Array.isArray(response.data) 
-                    ? response.data 
-                    : response.data.productos || [];
-
-                setProductos(productosData);
-                setLoading(false);
-            } catch (err) {
-                console.error('Error detallado:', err);
-                setError(err.response?.data?.message || err.message || 'Error al cargar los productos');
-                setLoading(false);
+                setProductos(response.data);
+            } catch (error) {
+                console.error('Error al cargar productos:', error);
             }
         };
 
