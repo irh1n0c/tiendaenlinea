@@ -16,13 +16,13 @@ function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post("http://localhost:3001/api/login", {
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/login`, {
                 nombre,
                 contraseña,
             });
-
+    
             if (response.data.success) {
-                localStorage.setItem("auth", "true"); 
+                localStorage.setItem("auth", "true");
                 navigate("/itemstienda");
             } else {
                 alert("Credenciales incorrectas");
@@ -32,6 +32,7 @@ function Login() {
             alert("Error en el servidor");
         }
     };
+    
 
     return (
         <div className="flex items-center justify-center h-screen bg-gray-100">
