@@ -2,15 +2,16 @@ const express = require("express");
 const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
-
+require('dotenv').config();
 const router = express.Router();
 
 // Configuración de la conexión a MySQL
 const db = mysql.createConnection({
-    host: "localhost",
-    user: "root", 
-    password: "awds123", 
-    database: "tienda" 
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
+    port: process.env.MYSQLPORT
 });
 
 db.connect((err) => {
