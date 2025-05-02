@@ -4,7 +4,7 @@ import axios from "axios";
 
 function Login() {
     const [nombre, setNombre] = useState("");
-    const [contraseña, setContraseña] = useState("");
+    const [contrasena, setcontrasena] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -16,10 +16,11 @@ function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/login`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/login`, {
                 nombre,
-                contraseña,
-            });
+                contrasena,
+              });
+              
     
             if (response.data.success) {
                 localStorage.setItem("auth", "true");
@@ -48,11 +49,11 @@ function Login() {
                     required
                 />
 
-                <label className="block">Contraseña:</label>
+                <label className="block">contrasena:</label>
                 <input
                     type="password"
-                    value={contraseña}
-                    onChange={(e) => setContraseña(e.target.value)}
+                    value={contrasena}
+                    onChange={(e) => setcontrasena(e.target.value)}
                     className="w-full p-2 border rounded mb-2"
                     required
                 />

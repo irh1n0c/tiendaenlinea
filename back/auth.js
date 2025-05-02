@@ -1,24 +1,23 @@
 const express = require("express");
-const mysql = require("mysql2");
-const db = require("./database"); 
+const pool = require("./database"); // ahora usa pg
 const router = express.Router();
 
+router.post("/login", async (req, res) => {
+    const { nombre, contrasena } = req.body;
+    const sql = "SELECT * FROM usuarios WHERE nombre = $1 AND contrasena = $2";
 
+    try {
+        const result = await pool.query(sql, [nombre, contrasena]);
 
-// Ruta de Login
-router.post("/login", (req, res) => {
-    const { nombre, contraseña } = req.body;
-    const sql = "SELECT * FROM usuarios WHERE nombre = ? AND contraseña = ?";
-    
-    db.query(sql, [nombre, contraseña], (err, result) => {
-        if (err) return res.status(500).json({ error: err.message });
-
-        if (result.length > 0) {
+        if (result.rows.length > 0) {
             res.status(200).json({ success: true, message: "Login exitoso" });
         } else {
             res.status(401).json({ success: false, message: "Credenciales incorrectas" });
         }
-    });
+    } catch (err) {
+        console.error("Error en login:", err);
+        res.status(500).json({ error: "Error en el servidor" });
+    }
 });
 
 module.exports = router;

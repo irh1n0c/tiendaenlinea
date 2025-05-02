@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import ProductSlider from './ProductSlider'; // Importa el nuevo componente
+import ProductSlider from './ProductSlider';
 
 const WebProductos = () => {
     const [productos, setProductos] = useState([]);
-    const [loading, setLoading] = useState(true); // Estado para manejar la carga
-    const [error, setError] = useState(null); // Estado para manejar los errores
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    // Fix: Use import.meta.env instead of process.env for Vite
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
     useEffect(() => {
         const fetchProductos = async () => {
             try {
-                const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
                 const response = await axios.get(`${API_URL}/api/productos`);
                 setProductos(response.data);
-                setLoading(false); // Cambio a false cuando los productos se cargan
+                setLoading(false);
             } catch (err) {
+                console.error("Error fetching products:", err);
                 setError('Error al cargar productos');
-                setLoading(false); // Asegurarse de que el loading se desactive en caso de error
+                setLoading(false);
             }
         };
 
@@ -27,14 +30,11 @@ const WebProductos = () => {
         const { nombre, descripcion } = producto;
         const mensaje = `¡Hola! Me interesa el producto: *${nombre}* - Precio: *${descripcion}`;
         
-        // Codificar el mensaje para URL
         const mensajeCodificado = encodeURIComponent(mensaje);
         const numeroWhatsApp = "+51903024070"; 
         
-        // Crear la URL de WhatsApp con el mensaje
         const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
         
-        // Abrir WhatsApp en una nueva ventana/pestaña
         window.open(urlWhatsApp, '_blank');
     };
 
@@ -56,7 +56,6 @@ const WebProductos = () => {
     
     return (
         <div className="container mx-auto px-4 py-8">
-            {/* Aquí se incluye el slider en la parte superior */}
             <ProductSlider />
             
             <h1 className="text-3xl font-bold text-center mb-8">Nuestros Productos</h1>

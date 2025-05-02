@@ -1,10 +1,8 @@
 const express = require("express");
-const mysql = require("mysql2");
 const multer = require("multer");
 const path = require("path");
 const db = require("./database"); 
 const router = express.Router();
-
 
 // Configurar multer para guardar los archivos
 const storage = multer.diskStorage({
@@ -41,7 +39,7 @@ router.get("/productos", (req, res) => {
     
     // Si hay término de búsqueda, modificar la consulta para filtrar por nombre
     if (searchTerm) {
-        sql = "SELECT * FROM productos WHERE nombre LIKE ?";
+        sql = "SELECT * FROM productos WHERE nombre LIKE $1";
         params = [`%${searchTerm}%`]; // Búsqueda parcial (contiene)
     }
     
@@ -54,8 +52,11 @@ router.get("/productos", (req, res) => {
             });
         }
         
+        // Verificar si results tiene la propiedad rows (PostgreSQL)
+        const productosData = results.rows || results;
+        
         // Mapear resultados para asegurar que las rutas de imagen sean completas
-        const productosConImagenes = results.map(producto => ({
+        const productosConImagenes = productosData.map(producto => ({
             ...producto,
             imagen: producto.imagen ? `imagenes/${path.basename(producto.imagen)}` : null
         }));
@@ -67,7 +68,7 @@ router.get("/productos", (req, res) => {
 // Ruta para obtener un producto específico por ID
 router.get("/productos/:id", (req, res) => {
     const productId = req.params.id;
-    const sql = "SELECT * FROM productos WHERE id = ?";
+    const sql = "SELECT * FROM productos WHERE id = $1";
     
     db.query(sql, [productId], (err, results) => {
         if (err) {
@@ -75,11 +76,14 @@ router.get("/productos/:id", (req, res) => {
             return res.status(500).json({ error: "Error al recuperar producto" });
         }
         
-        if (results.length === 0) {
+        // Verificar si results tiene la propiedad rows (PostgreSQL)
+        const productosData = results.rows || results;
+        
+        if (productosData.length === 0) {
             return res.status(404).json({ error: "Producto no encontrado" });
         }
         
-        const producto = results[0];
+        const producto = productosData[0];
         res.status(200).json({
             ...producto,
             imagen: producto.imagen ? `imagenes/${path.basename(producto.imagen)}` : null
@@ -94,17 +98,20 @@ router.post("/productos", upload.single('imagen'), (req, res) => {
     // Obtener la ruta de la imagen si se subió
     const rutaImagen = req.file ? `imagenes/${req.file.filename}` : '';
     
-    const sql = "INSERT INTO productos (nombre, descripcion, imagen, stock) VALUES (?, ?, ?, ?)";
+    const sql = "INSERT INTO productos (nombre, descripcion, imagen, stock) VALUES ($1, $2, $3, $4) RETURNING id";
     
     db.query(sql, [nombre, descripcion, rutaImagen, stock || 0], (err, result) => {
         if (err) {
             console.error("Error al insertar producto:", err);
             res.status(500).json({ error: "Error al agregar producto" });
         } else {
+            // Extraer el ID insertado (PostgreSQL devuelve en result.rows[0].id)
+            const insertId = result.rows ? result.rows[0].id : result.insertId;
+            
             res.status(201).json({ 
                 message: "Producto agregado correctamente",
                 producto: {
-                    id: result.insertId,
+                    id: insertId,
                     nombre,
                     descripcion,
                     imagen: rutaImagen,
@@ -121,17 +128,20 @@ router.put("/productos/:id", upload.single('imagen'), (req, res) => {
     const { nombre, descripcion, stock } = req.body;
     
     // Primero verificar si el producto existe
-    db.query("SELECT * FROM productos WHERE id = ?", [productId], (err, results) => {
+    db.query("SELECT * FROM productos WHERE id = $1", [productId], (err, results) => {
         if (err) {
             console.error("Error al buscar producto:", err);
             return res.status(500).json({ error: "Error al buscar producto" });
         }
         
-        if (results.length === 0) {
+        // Verificar si results tiene la propiedad rows (PostgreSQL)
+        const productosData = results.rows || results;
+        
+        if (productosData.length === 0) {
             return res.status(404).json({ error: "Producto no encontrado" });
         }
         
-        const productoExistente = results[0];
+        const productoExistente = productosData[0];
         
         // Determinar la ruta de la imagen a guardar
         let rutaImagen = productoExistente.imagen; // Mantener la imagen existente por defecto
@@ -142,7 +152,7 @@ router.put("/productos/:id", upload.single('imagen'), (req, res) => {
         }
         
         // Actualizar el producto
-        const sql = "UPDATE productos SET nombre = ?, descripcion = ?, imagen = ?, stock = ? WHERE id = ?";
+        const sql = "UPDATE productos SET nombre = $1, descripcion = $2, imagen = $3, stock = $4 WHERE id = $5";
         
         db.query(sql, [nombre, descripcion, rutaImagen, stock || 0, productId], (err, result) => {
             if (err) {
@@ -169,18 +179,21 @@ router.delete("/productos/:id", (req, res) => {
     const productId = req.params.id;
     
     // Primero obtenemos el producto para saber si tiene imagen
-    db.query("SELECT * FROM productos WHERE id = ?", [productId], (err, results) => {
+    db.query("SELECT * FROM productos WHERE id = $1", [productId], (err, results) => {
         if (err) {
             console.error("Error al buscar producto:", err);
             return res.status(500).json({ error: "Error al buscar producto" });
         }
         
-        if (results.length === 0) {
+        // Verificar si results tiene la propiedad rows (PostgreSQL)
+        const productosData = results.rows || results;
+        
+        if (productosData.length === 0) {
             return res.status(404).json({ error: "Producto no encontrado" });
         }
         
         // Eliminar el producto
-        db.query("DELETE FROM productos WHERE id = ?", [productId], (err, result) => {
+        db.query("DELETE FROM productos WHERE id = $1", [productId], (err, result) => {
             if (err) {
                 console.error("Error al eliminar producto:", err);
                 return res.status(500).json({ error: "Error al eliminar producto" });

@@ -7,10 +7,11 @@ const ProductSlider = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
     useEffect(() => {
         const fetchSlides = async () => {
             try {
-                const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001'; // Usamos la URL desde el archivo de entorno
                 const response = await axios.get(`${API_URL}/api/slides`);
                 const slidesData = Array.isArray(response.data) ? response.data : response.data.slides || [];
                 
@@ -21,7 +22,8 @@ const ProductSlider = () => {
                 setError(err.response?.data?.message || 'Error al cargar las imágenes del slider');
                 setLoading(false);
                 
-                setSlides([ // Esto es para la simulación si hay error
+                // Simulación en caso de error
+                setSlides([
                     { id: 1, imagen: 'slider/slide1.jpg', titulo: 'Promoción 1' },
                     { id: 2, imagen: 'slider/slide2.jpg', titulo: 'Nuevos Productos' },
                     { id: 3, imagen: 'slider/slide3.jpg', titulo: 'Ofertas Especiales' }
@@ -30,7 +32,7 @@ const ProductSlider = () => {
         };
 
         fetchSlides();
-    }, []);
+    }, [API_URL]);
 
     useEffect(() => {
         if (slides.length === 0) return;
@@ -85,7 +87,7 @@ const ProductSlider = () => {
                         }`}
                     >
                         <img 
-                            src={`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/${slide.imagen}`} 
+                            src={`${API_URL}/${slide.imagen}`} 
                             alt={slide.titulo || `Slide ${index + 1}`} 
                             className="w-full h-full object-cover" 
                         />
