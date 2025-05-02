@@ -22,7 +22,8 @@ const SliderAdmin = () => {
     const fetchSlides = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:3001/api/slides');
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'; // Fallback para desarrollo
+            const response = await axios.get(`${apiUrl}/api/slides`);
             setSlides(response.data);
             setLoading(false);
         } catch (err) {
@@ -39,7 +40,8 @@ const SliderAdmin = () => {
             link: slide.link || '',
             imagen: null
         });
-        setPreviewImage(`http://localhost:3001/${slide.imagen}`);
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'; // Fallback para desarrollo
+        setPreviewImage(`${apiUrl}/${slide.imagen}`);
         setSuccessMessage('');
     };
 
@@ -84,8 +86,9 @@ const SliderAdmin = () => {
             }
             
             // Enviar al servidor
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'; // Fallback para desarrollo
             const response = await axios.put(
-                `http://localhost:3001/api/slides/${currentSlide.id}`,
+                `${apiUrl}/api/slides/${currentSlide.id}`,
                 data,
                 {
                     headers: {
@@ -139,7 +142,7 @@ const SliderAdmin = () => {
                     >
                         <div className="h-40 overflow-hidden">
                             <img 
-                                src={`http://localhost:3001/${slide.imagen}`}
+                                src={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/${slide.imagen}`}
                                 alt={slide.titulo || `Slide ${slide.id}`}
                                 className="w-full h-full object-cover"
                             />

@@ -8,13 +8,18 @@ function RegistroUsuario() {
     const [mensaje, setMensaje] = useState("");
     const [error, setError] = useState("");
 
+    // Definir la URL de la API basada en el entorno
+    const apiUrl = import.meta.env.MODE === 'production'
+        ? import.meta.env.VITE_API_URL
+        : 'http://localhost:3001';  // URL de desarrollo en local
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMensaje("");
         setError("");
         
         try {
-            const response = await axios.post("http://localhost:3001/api/registrar", {
+            const response = await axios.post(`${apiUrl}/api/registrar`, {
                 nombre,
                 contrasena,
                 telefono,

@@ -15,13 +15,18 @@ function Login() {
 
     const handleLogin = async (e) => {
         e.preventDefault();
+
+        // Usamos la URL de la API basada en el entorno
+        const apiUrl = import.meta.env.MODE === 'production'
+            ? import.meta.env.VITE_API_URL
+            : 'http://localhost:3001';  // URL de desarrollo
+
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/login`, {
+            const response = await axios.post(`${apiUrl}/api/login`, {
                 nombre,
                 contrasena,
-              });
-              
-    
+            });
+
             if (response.data.success) {
                 localStorage.setItem("auth", "true");
                 navigate("/itemstienda");
@@ -33,7 +38,6 @@ function Login() {
             alert("Error en el servidor");
         }
     };
-    
 
     return (
         <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -49,7 +53,7 @@ function Login() {
                     required
                 />
 
-                <label className="block">contrasena:</label>
+                <label className="block">Contraseña:</label>
                 <input
                     type="password"
                     value={contrasena}
