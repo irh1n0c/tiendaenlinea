@@ -50,27 +50,12 @@ function getSlidesInfo() {
             console.error("Error al leer archivo de slides:", error);
         }
     }
-    
+
     // Información por defecto si no existe el archivo
     return [
-        { 
-            id: 1, 
-            titulo: 'Slide 1', 
-            imagen: 'uploads/slider/slide1.jpg', 
-            link: '' 
-        },
-        { 
-            id: 2, 
-            titulo: 'Slide 2', 
-            imagen: 'uploads/slider/slide2.jpg', 
-            link: '' 
-        },
-        { 
-            id: 3, 
-            titulo: 'Slide 3', 
-            imagen: 'uploads/slider/slide3.jpg', 
-            link: '' 
-        }
+        { id: 1, titulo: 'Slide 1', imagen: 'uploads/slider/slide1.jpg', link: '' },
+        { id: 2, titulo: 'Slide 2', imagen: 'uploads/slider/slide2.jpg', link: '' },
+        { id: 3, titulo: 'Slide 3', imagen: 'uploads/slider/slide3.jpg', link: '' }
     ];
 }
 
@@ -86,28 +71,58 @@ function saveSlidesInfo(slides) {
 // Ruta GET para obtener todos los slides
 router.get("/slides", (req, res) => {
     const slides = getSlidesInfo();
-    
+
     // Verificar si cada imagen existe realmente
     slides.forEach(slide => {
         const imagePath = slide.imagen.replace('uploads/slider/', '');
         const fullPath = path.join(SLIDER_DIR, imagePath);
-        
+
         if (!fs.existsSync(fullPath)) {
-            // Si no existe, usar una imagen placeholder
             slide.imagen = 'uploads/slider/placeholder.jpg';
         }
     });
-    
+
     res.status(200).json(slides);
 });
 
-// Rutas existentes...
+// Ruta PUT para actualizar un slide
+router.put("/slides/:position", upload.single("imagen"), (req, res) => {
+    const position = parseInt(req.params.position);
+
+    if (![1, 2, 3].includes(position)) {
+        return res.status(400).json({ error: "Posición inválida del slide." });
+    }
+
+    const slides = getSlidesInfo();
+    const slideIndex = slides.findIndex(s => s.id === position);
+
+    if (slideIndex === -1) {
+        return res.status(404).json({ error: "Slide no encontrado." });
+    }
+
+    // Actualizar datos del slide
+    if (req.body.titulo) {
+        slides[slideIndex].titulo = req.body.titulo;
+    }
+
+    if (req.body.link !== undefined) {
+        slides[slideIndex].link = req.body.link;
+    }
+
+    if (req.file) {
+        const extension = path.extname(req.file.originalname).toLowerCase();
+        slides[slideIndex].imagen = `${SLIDER_DIR}/slide${position}${extension}`;
+    }
+
+    saveSlidesInfo(slides);
+
+    res.status(200).json({ message: "Slide actualizado correctamente", slide: slides[slideIndex] });
+});
 
 // Crear una imagen placeholder por defecto
 const placeholderPath = path.join(SLIDER_DIR, 'placeholder.jpg');
 if (!fs.existsSync(placeholderPath)) {
     try {
-        // Crear una imagen placeholder básica
         const placeholderContent = Buffer.from(
             'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'
         );
